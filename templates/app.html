@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        #chatbox {
+            width: 400px;
+            height: 500px;
+            border: 2px solid #ccc;
+            padding: 10px;
+            overflow-y: scroll;
+            background-color: white;
+            margin-bottom: 10px;
+        }
+
+        #user-input {
+            width: 300px;
+            padding: 10px;
+        }
+
+        #send-button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #send-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Chatbot</h1>
+
+    <div id="chatbox"></div>
+
+    <input type="text" id="user-input" placeholder="Enter your interests (e.g., art, technology)">
+    <button id="send-button" onclick="sendMessage()">Send</button>
+
+    <script>
+        function sendMessage() {
+            // Get the user input
+            var userInput = document.getElementById('user-input').value;
+            
+            if (!userInput) {
+                alert("Please enter your interests.");
+                return;
+            }
+
+            // Display user message in chatbox
+            var chatbox = document.getElementById('chatbox');
+            chatbox.innerHTML += "<p><strong>You:</strong> " + userInput + "</p>";
+
+            // Send user input to the Flask API
+            fetch('/get_professions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    interests: userInput.split(',').map(item => item.trim())
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    chatbox.innerHTML += "<p><strong>Bot:</strong> " + data.error + "</p>";
+                } else {
+                    chatbox.innerHTML += "<p><strong>Bot:</strong> Top professions: " + data.top_professions.join(', ') + "</p>";
+                }
+
+                // Scroll chatbox to the bottom
+                chatbox.scrollTop = chatbox.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+            // Clear input field
+            document.getElementById('user-input').value = '';
+        }
+    </script>
+
+</body>
+</html>
